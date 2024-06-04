@@ -1,17 +1,17 @@
 use std::path::Path;
 use std::sync::{Arc, Mutex};
-use std::sync::mpsc::channel;
 use std::thread;
 
-use image::{DynamicImage, ExtendedColorType, GenericImageView, ImageFormat, Rgb, RgbImage, save_buffer_with_format};
+use image::{DynamicImage, ExtendedColorType, GenericImageView, ImageFormat, Rgb, save_buffer_with_format};
 use image::imageops::FilterType;
 
 use crate::colour::euclideanDistance;
+use crate::utils::available_threads;
 
 struct Image {
-    path: Path
-
+    path: Path,
 }
+
 pub fn loadImage(filePath: &str) -> DynamicImage {
     let img = image::open(filePath).expect("ERROR: Unable to open image");
     return img;
@@ -93,12 +93,7 @@ pub fn apply_palette(image: DynamicImage, palette: Vec<Rgb<u8>>) -> DynamicImage
         handle.join().unwrap();
     }
 
-    return Arc::try_unwrap(image).unwrap().into_inner().unwrap()
+    return Arc::try_unwrap(image).unwrap().into_inner().unwrap();
 }
 
 
-fn available_threads() -> usize {
-    return thread::available_parallelism()
-        .map(|n| n.get())
-        .unwrap_or(1)
-}

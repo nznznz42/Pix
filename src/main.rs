@@ -1,20 +1,20 @@
-use std::path::Path;
 use ::image::imageops::FilterType;
-use clap::{Arg, command};
 
 use crate::image::{apply_palette, loadImage, pixelateImage, saveImage};
-use crate::palette::{listPalettes, loadPalette};
+use crate::palette::{generateRawPalette, loadPalette};
 
 mod palette;
 mod colour;
 mod image;
+mod utils;
 
 fn main() {
     let inpath = "./input/creek.jpg";
-    let outpath = "./output/test.png";
-    let palname = "playpal.hex";
-    let pxFactor = 5;
-    px_std(inpath, outpath, palname, pxFactor, FilterType::Nearest)
+    let outpath = "./output/tiger.png";
+    let palname = "hollow.hex";
+    let pxFactor = 2;
+    //px_std(inpath, outpath, palname, pxFactor, FilterType::Nearest)
+    px_gen_raw_pal(outpath)
 }
 
 fn px_std(inputfilepath: &str, outputfilepath: &str, palette: &str, pxfactor: u32, interpolfilter: FilterType) {
@@ -23,4 +23,10 @@ fn px_std(inputfilepath: &str, outputfilepath: &str, palette: &str, pxfactor: u3
     let pix = pixelateImage(&img, pxfactor, interpolfilter);
     let fin = apply_palette(pix, pal);
     saveImage(&fin, "png", outputfilepath)
+}
+
+fn px_gen_raw_pal(inputfilepath: &str) {
+    let img = loadImage(inputfilepath);
+    let raw = generateRawPalette(&img);
+    println!("{}", raw.len())
 }

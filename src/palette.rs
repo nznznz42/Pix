@@ -1,12 +1,28 @@
+use std::collections::HashSet;
 use std::fs::{read_dir, read_to_string};
 use std::io::Read;
 use std::path::Path;
 
-use image::Rgb;
+use image::{DynamicImage, GenericImageView, Rgb};
+use crate::colour::SelectionStrategy;
 
 struct Palette {
-    path: Path
+    name: &'static str,
+    colours: Vec<Rgb<u8>>,
 }
+
+impl Palette {
+    pub fn new(filename: &'static str) -> Palette {
+        let colors = loadPalette(filename);
+        return Palette {
+            name: filename,
+            colours: colors,
+        };
+    }
+
+    pub fn generatePalette(imagefilepath: &str, palettename: &str, numcolours: u8, selection_strategy: SelectionStrategy) {}
+}
+
 pub fn listPalettes() {
     let paletteDir = Path::new("./palettes");
     let files = read_dir(paletteDir).unwrap();
@@ -37,4 +53,19 @@ fn hexToRGB(hexCode: &str) -> Result<Rgb<u8>, &'static str> {
     let b = u8::from_str_radix(&hex[4..6], 16).map_err(|_| "Invalid hex value")?;
 
     return Ok(Rgb([r, g, b]));
+}
+
+fn rgba_to_hex(rgba: [u8; 4]) -> String {
+    format!("#{:02X}{:02X}{:02X}", rgba[0], rgba[1], rgba[2])
+}
+
+pub fn generateRawPalette(img: &DynamicImage) -> HashSet<Rgb<u8>> {
+    let rgb_img = img.to_rgb8();
+    let mut colours = HashSet::new();
+
+    for pixel in rgb_img.pixels() {
+        colours.insert(*pixel);
+    }
+
+    return colours;
 }
