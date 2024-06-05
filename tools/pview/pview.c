@@ -3,13 +3,14 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <dirent.h>
 
 #define MARGIN 10
 #define BOTTOM_MARGIN 40
 
 typedef struct {
     unsigned char r, g, b;
-} colour; 
+} colour;
 
 float CalculateLuminance(Color color) {
     return (0.299 * color.r + 0.587 * color.g + 0.114 * color.b) / 255.0;
@@ -51,48 +52,142 @@ void CalculateIdealSquareSize(int n, int x, int y, int *rows, int *cols, int *ce
     }
 }
 
-int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s <palette.hex>\n", argv[0]);
+int LoadPalette(const char *filepath, colour *colors, int *color_count) {
+    FILE *file = fopen(filepath, "r");
+    if (!file) {
+        fprintf(stderr, "Could not open file: %s\n", filepath);
         return 1;
     }
 
-    char *filename = strrchr(argv[1], '/');
-    filename = (filename != NULL) ? filename + 1 : argv[1];
+    *color_count = 0;
+    char hex_code[7];
+
+    while (fscanf(file, "%6s", hex_code) == 1 && *color_count < 256) {
+        unsigned int hex;
+        sscanf(hex_code, "%x", &hex);
+        colors[*color_count].r = (hex >> 16) & 0xFF;
+        colors[*color_count].g = (hex >> 8) & 0xFF;
+        colors[*color_count].b = hex & 0xFF;
+        (*color_count)++;
+    }
+    fclose(file);
+    return 0;
+}
+
+char** GetPaletteFiles(const char *directory, int *file_count) {
+    DIR *dir = opendir(directory);
+    struct dirent *entry;
+    char **palette_files = NULL;
+    *file_count = 0;
+
+    if (dir) {
+        while ((entry = readdir(dir)) != NULL) {
+            if (strstr(entry->d_name, ".hex") != NULL) {
+                palette_files = realloc(palette_files, (*file_count + 1) * sizeof(char*));
+                if (palette_files == NULL) {
+                    fprintf(stderr, "Memory allocation failed\n");
+                    closedir(dir);
+                    exit(EXIT_FAILURE);
+                }
+                size_t len = strlen(directory) + strlen(entry->d_name) + 2; // +2 for '/' and '\0'
+                palette_files[*file_count] = malloc(len);
+                if (palette_files[*file_count] == NULL) {
+                    fprintf(stderr, "Memory allocation failed\n");
+                    closedir(dir);
+                    exit(EXIT_FAILURE);
+                }
+                snprintf(palette_files[*file_count], len, "%s/%s", directory, entry->d_name);
+                (*file_count)++;
+            }
+        }
+        closedir(dir);
+    }
+    return palette_files;
+}
+
+void FreePaletteFiles(char **palette_files, int file_count) {
+    for (int i = 0; i < file_count; i++) {
+        free(palette_files[i]);
+    }
+    free(palette_files);
+}
+
+const char* GetPalFileName(const char* path) {
+    const char* filename = strrchr(path, '/');
+    return filename ? filename + 1 : path;
+}
+
+int main(int argc, char *argv[]) {
+    const char *directory = "../../palettes";
+    int file_count = 0;
+    char **palette_files = GetPaletteFiles(directory, &file_count);
+    int current_palette_index = 0;
+
+    if (file_count == 0) {
+        fprintf(stderr, "No .hex files found in directory: %s\n", directory);
+        return 1;
+    }
+
+    const char *filename = (argc == 2) ? argv[1] : palette_files[0];
+
+    if (argc == 2) {
+        FILE *file = fopen(filename, "r");
+        if (!file) {
+            fprintf(stderr, "Provided file does not exist: %s\n", argv[1]);
+            FreePaletteFiles(palette_files, file_count);
+            return 1;
+        }
+        fclose(file);
+    } else {
+        filename = palette_files[0];
+    }
 
     InitWindow(800, 600, "PView");
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetTargetFPS(60);
 
-    FILE *file = fopen(argv[1], "r");
-    if (!file) {
-        fprintf(stderr, "Could not open file: %s\n", argv[1]);
+    colour colors[256];
+    Color bgColour = RAYWHITE;
+    Color textColour = BLACK;
+    int color_count = 0;
+
+    if (LoadPalette(filename, colors, &color_count)) {
         CloseWindow();
+        FreePaletteFiles(palette_files, file_count);
         return 1;
     }
-    
-/* might want to modify this to support an arbitrary number of colours at some point 
- * things to change:
- * 1. make colors a vector
- * 2. revamp the text sizing logic to just not print it if it gets too small
- * 3. add in hue shifting or whatever palette editing features one might want
- * 4. clean up code so it isn't a disgusting throwaway script like it is right now
-*/
-    colour colors[256];
-    int color_count = 0;
-    char hex_code[7];
-
-    while (fscanf(file, "%6s", hex_code) == 1 && color_count < 256) {
-        unsigned int hex;
-        sscanf(hex_code, "%x", &hex);
-        colors[color_count].r = (hex >> 16) & 0xFF;
-        colors[color_count].g = (hex >> 8) & 0xFF;
-        colors[color_count].b = hex & 0xFF;
-        color_count++;
-    }
-    fclose(file);
 
     while (!WindowShouldClose()) {
+        if (IsKeyPressed(KEY_RIGHT)) {
+            current_palette_index = (current_palette_index + 1) % file_count;
+            filename = palette_files[current_palette_index];
+            if (LoadPalette(filename, colors, &color_count)) {
+                CloseWindow();
+                FreePaletteFiles(palette_files, file_count);
+                return 1;
+            }
+        }
+
+        if (IsKeyPressed(KEY_LEFT)) {
+            current_palette_index = (current_palette_index - 1 + file_count) % file_count;
+            filename = palette_files[current_palette_index];
+            if (LoadPalette(filename, colors, &color_count)) {
+                CloseWindow();
+                FreePaletteFiles(palette_files, file_count);
+                return 1;
+            }
+        }
+        
+        if (IsKeyPressed(KEY_SPACE)) {
+            if (bgColour.r == RAYWHITE.r && bgColour.g == RAYWHITE.g && bgColour.b == RAYWHITE.b && bgColour.a == RAYWHITE.a) {
+                bgColour = BLACK;
+                textColour = RAYWHITE;
+            } else {
+                bgColour = RAYWHITE;
+                textColour = BLACK;
+            }
+        }
+
         int windowWidth = GetScreenWidth();
         int windowHeight = GetScreenHeight();
 
@@ -107,7 +202,7 @@ int main(int argc, char *argv[]) {
         }
 
         BeginDrawing();
-        ClearBackground(RAYWHITE);
+        ClearBackground(bgColour);
 
         for (int i = 0; i < color_count; i++) {
             int row = i / cols;
@@ -116,7 +211,7 @@ int main(int argc, char *argv[]) {
             int x = col * (cellSize + MARGIN) + MARGIN;
             int y = row * (cellSize + MARGIN) + MARGIN;
 
-            Color c = { colors[i].r, colors[i].g, colors[i].b, 255 }; 
+            Color c = { colors[i].r, colors[i].g, colors[i].b, 255 };
             DrawRectangle(x, y, cellSize, cellSize, c);
 
             char text[8];
@@ -128,15 +223,25 @@ int main(int argc, char *argv[]) {
 
         char count_text[50];
         snprintf(count_text, sizeof(count_text), "Total Colors: %d", color_count);
-        DrawText(count_text, MARGIN, windowHeight - 30, 20, BLACK);
+        DrawText(count_text, MARGIN, windowHeight - 30, 20, textColour);
 
-        Vector2 filenameSize = MeasureTextEx(GetFontDefault(), filename, 20, 1);
-        DrawText(filename, windowWidth - filenameSize.x - MARGIN, windowHeight - 30, 20, BLACK);
+        const char *display_filename = GetFileName(filename);
+
+        const char *navigation_text = "<-- Prev Next -->";
+        Vector2 navigationSize = MeasureTextEx(GetFontDefault(), navigation_text, 20, 1);
+        Vector2 filenameSize = MeasureTextEx(GetFontDefault(), display_filename, 20, 1);
+        Vector2 countSize = MeasureTextEx(GetFontDefault(), count_text, 20, 1);
+
+        int nav_x = (windowWidth - (countSize.x + filenameSize.x + 3 * MARGIN)) / 2;
+
+        DrawText(navigation_text, nav_x, windowHeight - 30, 20, textColour);
+        DrawText(display_filename, windowWidth - filenameSize.x - MARGIN - 10, windowHeight - 30, 20, textColour);
 
         EndDrawing();
     }
 
     CloseWindow();
+    FreePaletteFiles(palette_files, file_count);
 
     return 0;
 }

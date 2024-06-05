@@ -6,6 +6,7 @@ use image::{DynamicImage, ExtendedColorType, GenericImageView, ImageFormat, Rgb,
 use image::imageops::FilterType;
 
 use crate::colour::euclideanDistance;
+use crate::palette::Palette;
 use crate::utils::available_threads;
 
 struct Image {
@@ -39,7 +40,7 @@ pub fn pixelateImage(img: &DynamicImage, scale: u32, filter: FilterType) -> Dyna
     return pixelated;
 }
 
-fn apply_palette_partial(image: &mut DynamicImage, palette: &Vec<Rgb<u8>>, start_row: u32, end_row: u32) {
+fn apply_palette_partial(image: &mut DynamicImage, palette: &Palette, start_row: u32, end_row: u32) {
     let (width, height) = image.dimensions();
     let mut rgb_image = image.to_rgb8();
 
@@ -49,8 +50,8 @@ fn apply_palette_partial(image: &mut DynamicImage, palette: &Vec<Rgb<u8>>, start
             let mut min_distance = f64::MAX;
             let mut best_match = *pixel;
 
-            for color in palette {
-                let distance = euclideanDistance(pixel, color);
+            for color in &palette.colours {
+                let distance = euclideanDistance(pixel, &color);
                 if distance < min_distance as f32 {
                     min_distance = distance as f64;
                     best_match = *color;
@@ -65,7 +66,7 @@ fn apply_palette_partial(image: &mut DynamicImage, palette: &Vec<Rgb<u8>>, start
 }
 
 
-pub fn apply_palette(image: DynamicImage, palette: Vec<Rgb<u8>>) -> DynamicImage {
+pub fn apply_palette(image: DynamicImage, palette: Palette) -> DynamicImage {
     let num_threads = available_threads();
     let (width, height) = image.dimensions();
     let rows_per_thread = (height as usize + num_threads - 1) / num_threads;

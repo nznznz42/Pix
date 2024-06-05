@@ -24,6 +24,7 @@ pub fn selectRandomly(colors: &Vec<Rgb<u8>>, num_colours: usize) -> Vec<Rgb<u8>>
         .collect()
 }
 
+//broken
 pub fn selectAverage(colors: &Vec<Rgb<u8>>, num_colours: usize) -> Vec<Rgb<u8>> {
     let chunk_size = (colors.len() / num_colours).max(1);
     colors.chunks(chunk_size)
