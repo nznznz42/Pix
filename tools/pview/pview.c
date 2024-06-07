@@ -223,19 +223,27 @@ int main(int argc, char *argv[]) {
 
         char count_text[50];
         snprintf(count_text, sizeof(count_text), "Total Colors: %d", color_count);
-        DrawText(count_text, MARGIN, windowHeight - 30, 20, textColour);
 
         const char *display_filename = GetFileName(filename);
-
         const char *navigation_text = "<-- Prev Next -->";
+
+        Vector2 countSize = MeasureTextEx(GetFontDefault(), count_text, 20, 1);
         Vector2 navigationSize = MeasureTextEx(GetFontDefault(), navigation_text, 20, 1);
         Vector2 filenameSize = MeasureTextEx(GetFontDefault(), display_filename, 20, 1);
-        Vector2 countSize = MeasureTextEx(GetFontDefault(), count_text, 20, 1);
 
-        int nav_x = (windowWidth - (countSize.x + filenameSize.x + 3 * MARGIN)) / 2;
+        int count_x = MARGIN;
 
-        DrawText(navigation_text, nav_x, windowHeight - 30, 20, textColour);
-        DrawText(display_filename, windowWidth - filenameSize.x - MARGIN - 10, windowHeight - 30, 20, textColour);
+        int filename_x = windowWidth - filenameSize.x - MARGIN;
+
+        int nav_x = (count_x + countSize.x + filename_x) / 2 - navigationSize.x / 2;
+
+        int text_y = windowHeight - 30;
+
+        // Draw the texts
+        DrawText(count_text, count_x, text_y, 20, textColour);
+        DrawText(navigation_text, nav_x, text_y, 20, textColour);
+        DrawText(display_filename, filename_x, text_y, 20, textColour);
+
 
         EndDrawing();
     }
