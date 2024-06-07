@@ -1,0 +1,16 @@
+# TODO
+
+1. Pixelizer [x]
+2. AutoPalette [x]
+3. Metadata []
+4. Gif/Video Support []
+5. ANSI Terminal graphics []
+6. Plugin system []
+7. Export System (SVG, Excel etc) []
+8. Quantization expansion []
+9. Dithering []
+10. Scaling []
+11. Emojizer []
+12. CLI []
+13. GUI []
+14. Random Patterns []
