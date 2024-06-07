@@ -1,6 +1,8 @@
 use image::Rgb;
 use rand::prelude::IteratorRandom;
 
+use crate::utils::sumFoldAndCount;
+
 pub fn euclideanDistance(color1: &Rgb<u8>, color2: &Rgb<u8>) -> f32 {
     let r = (color2[0] as f32 - color1[0] as f32).powf(2f32);
     let g = (color2[1] as f32 - color1[1] as f32).powf(2f32);
@@ -14,8 +16,9 @@ pub enum SelectionStrategy {
     Random,
     Average,
     KMeans,
-    Median
+    Median,
 }
+
 pub fn selectRandomly(colors: &Vec<Rgb<u8>>, num_colours: usize) -> Vec<Rgb<u8>> {
     let mut rng = rand::thread_rng();
     colors.iter().choose_multiple(&mut rng, num_colours)
@@ -156,13 +159,3 @@ pub fn selectMedian(colors: &Vec<Rgb<u8>>, num_colours: usize) -> Vec<Rgb<u8>> {
     }).collect()
 }
 
-fn sumFoldAndCount(cluster: &Vec<Rgb<u8>>) -> (u32, u32, u32, u32) {
-    cluster.iter().fold((0u32, 0u32, 0u32, 0u32), |acc, color| {
-        (
-            acc.0 + color[0] as u32,
-            acc.1 + color[1] as u32,
-            acc.2 + color[2] as u32,
-            acc.3 + 1,
-        )
-    })
-}
