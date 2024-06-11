@@ -1,15 +1,33 @@
 use image::Rgb;
 use rand::prelude::IteratorRandom;
 
-use crate::utils::sumFoldAndCount;
+use crate::palette::Palette;
+use crate::utils::sum_fold_and_count;
 
-pub fn euclideanDistance(color1: &Rgb<u8>, color2: &Rgb<u8>) -> f32 {
+pub fn euclidean_distance(color1: &Rgb<u8>, color2: &Rgb<u8>) -> f32 {
     let r = (color2[0] as f32 - color1[0] as f32).powf(2f32);
     let g = (color2[1] as f32 - color1[1] as f32).powf(2f32);
     let b = (color2[2] as f32 - color1[2] as f32).powf(2f32);
 
     let dist = (r + g + b).sqrt();
     return dist;
+}
+
+pub fn calculate_avg_distance_in_palette(pal: &Palette) -> f32 {
+    let mut total_distance = 0.0;
+    let color_count = pal.colours.len();
+
+    if color_count == 0 {
+        return 0.0;
+    }
+
+    for (i, color1) in pal.colours.iter().enumerate() {
+        for color2 in pal.colours.iter().skip(i + 1) {
+            total_distance += euclidean_distance(color1, color2);
+        }
+    }
+
+    total_distance / color_count as f32
 }
 
 pub enum SelectionStrategy {
@@ -19,7 +37,7 @@ pub enum SelectionStrategy {
     Median,
 }
 
-pub fn selectRandomly(colors: &Vec<Rgb<u8>>, num_colours: usize) -> Vec<Rgb<u8>> {
+pub fn select_randomly(colors: &Vec<Rgb<u8>>, num_colours: usize) -> Vec<Rgb<u8>> {
     let mut rng = rand::thread_rng();
     colors.iter().choose_multiple(&mut rng, num_colours)
         .into_iter()
@@ -28,12 +46,12 @@ pub fn selectRandomly(colors: &Vec<Rgb<u8>>, num_colours: usize) -> Vec<Rgb<u8>>
 }
 
 //broken
-pub fn selectAverage(colors: &Vec<Rgb<u8>>, num_colours: usize) -> Vec<Rgb<u8>> {
+pub fn select_average(colors: &Vec<Rgb<u8>>, num_colours: usize) -> Vec<Rgb<u8>> {
     let chunk_size = (colors.len() / num_colours).max(1);
     colors.chunks(chunk_size)
         .map(|chunk| {
             let chunk_vec: Vec<Rgb<u8>> = chunk.to_vec();
-            let (sum_r, sum_g, sum_b, count) = sumFoldAndCount(&chunk_vec);
+            let (sum_r, sum_g, sum_b, count) = sum_fold_and_count(&chunk_vec);
             Rgb([
                 (sum_r / count) as u8,
                 (sum_g / count) as u8,
@@ -43,7 +61,7 @@ pub fn selectAverage(colors: &Vec<Rgb<u8>>, num_colours: usize) -> Vec<Rgb<u8>> 
         .collect()
 }
 
-pub fn selectKMeans(colors: &Vec<Rgb<u8>>, num_colours: usize) -> Vec<Rgb<u8>> {
+pub fn select_kmeans(colors: &Vec<Rgb<u8>>, num_colours: usize) -> Vec<Rgb<u8>> {
     let mut rng = rand::thread_rng();
 
     let mut centroids: Vec<Rgb<u8>> = colors.iter()
@@ -65,7 +83,7 @@ pub fn selectKMeans(colors: &Vec<Rgb<u8>>, num_colours: usize) -> Vec<Rgb<u8>> {
             let mut min_index = 0;
 
             for (j, centroid) in centroids.iter().enumerate() {
-                let distance = euclideanDistance(color, centroid);
+                let distance = euclidean_distance(color, centroid);
                 if distance < min_distance {
                     min_distance = distance;
                     min_index = j;
@@ -81,7 +99,7 @@ pub fn selectKMeans(colors: &Vec<Rgb<u8>>, num_colours: usize) -> Vec<Rgb<u8>> {
             if cluster.is_empty() {
                 new_centroids.push(Rgb([0, 0, 0]));
             } else {
-                let (sum_r, sum_g, sum_b, count) = sumFoldAndCount(cluster);
+                let (sum_r, sum_g, sum_b, count) = sum_fold_and_count(cluster);
                 new_centroids.push(Rgb([
                     (sum_r / count) as u8,
                     (sum_g / count) as u8,
@@ -100,7 +118,7 @@ pub fn selectKMeans(colors: &Vec<Rgb<u8>>, num_colours: usize) -> Vec<Rgb<u8>> {
     centroids
 }
 
-pub fn selectMedian(colors: &Vec<Rgb<u8>>, num_colours: usize) -> Vec<Rgb<u8>> {
+pub fn select_median(colors: &Vec<Rgb<u8>>, num_colours: usize) -> Vec<Rgb<u8>> {
     let mut boxes = vec![colors.to_vec()];
     while boxes.len() < num_colours {
         let mut new_boxes = vec![];
@@ -150,7 +168,7 @@ pub fn selectMedian(colors: &Vec<Rgb<u8>>, num_colours: usize) -> Vec<Rgb<u8>> {
     }
 
     boxes.iter().map(|b| {
-        let (sum_r, sum_g, sum_b, count) = sumFoldAndCount(b);
+        let (sum_r, sum_g, sum_b, count) = sum_fold_and_count(b);
         Rgb([
             (sum_r / count) as u8,
             (sum_g / count) as u8,

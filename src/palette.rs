@@ -6,10 +6,11 @@ use std::path::{Path, PathBuf};
 
 use image::{DynamicImage, GenericImageView, Rgb};
 
-use crate::colour::{selectAverage, SelectionStrategy, selectKMeans, selectMedian, selectRandomly};
+use crate::colour::{select_average, select_kmeans, select_median, select_randomly, SelectionStrategy};
 use crate::image::Image;
-use crate::utils::{hexToRGB, rgb_to_hex};
+use crate::utils::{hex_to_rgb, rgb_to_hex};
 
+#[derive(Clone)]
 pub struct Palette {
     pub name: String,
     pub colours: Vec<Rgb<u8>>,
@@ -17,23 +18,23 @@ pub struct Palette {
 
 impl Palette {
     pub fn new(filename: &str) -> Palette {
-        let colors = loadPalette(filename);
+        let colors = load_palette(filename);
         return Palette {
             name: filename.to_string(),
             colours: colors,
         };
     }
 
-    pub fn generatePalette(imagefilepath: &str, palettename: String, numcolours: usize, selection_strategy: SelectionStrategy) -> Palette {
+    pub fn generate_palette(imagefilepath: &str, palettename: String, numcolours: usize, selection_strategy: SelectionStrategy) -> Palette {
         let img = Image::new(imagefilepath);
-        let raw_pal = generateRawPalette(&img.data);
+        let raw_pal = generate_raw_palette(&img.data);
         let raw_vec: Vec<Rgb<u8>> = raw_pal.into_iter().collect();
 
         let gen_pal = match selection_strategy {
-            SelectionStrategy::Average => selectAverage(&raw_vec, numcolours),
-            SelectionStrategy::Random => selectRandomly(&raw_vec, numcolours),
-            SelectionStrategy::KMeans => selectKMeans(&raw_vec, numcolours),
-            SelectionStrategy::Median => selectMedian(&raw_vec, numcolours)
+            SelectionStrategy::Average => select_average(&raw_vec, numcolours),
+            SelectionStrategy::Random => select_randomly(&raw_vec, numcolours),
+            SelectionStrategy::KMeans => select_kmeans(&raw_vec, numcolours),
+            SelectionStrategy::Median => select_median(&raw_vec, numcolours)
         };
 
         return Palette {
@@ -42,7 +43,7 @@ impl Palette {
         };
     }
 
-    pub fn savePalette(&self, filepath: Option<&str>) {
+    pub fn save_palette(&self, filepath: Option<&str>) {
         let pathstr = filepath.unwrap_or_else(|| "./palettes");
         let path = Path::new(pathstr).join(&self.name);
         let mut file = File::create(path).expect("ERROR: COULD NOT CREATE PALETTE FILE.");
@@ -54,32 +55,32 @@ impl Palette {
         println!("INFO: Palette Saved Successfully.");
     }
 
-    pub fn listPalettes() {
-        let paletteDir = Path::new("./palettes");
-        let files = read_dir(paletteDir).unwrap();
+    pub fn list_palettes() {
+        let palette_dir = Path::new("./palettes");
+        let files = read_dir(palette_dir).unwrap();
         for pals in files {
             println!("{:?}", pals.unwrap().file_name())
         }
     }
 }
 
-fn loadPalette(path: &str) -> Vec<Rgb<u8>> {
-    let filePath = if Path::new(path).is_absolute() || Path::new(path).parent().is_some() {
+fn load_palette(path: &str) -> Vec<Rgb<u8>> {
+    let file_path = if Path::new(path).is_absolute() {
         PathBuf::from(path)
     } else {
         Path::new("./palettes").join(path)
     };
     let mut palette = Vec::new();
 
-    for colour in read_to_string(filePath).unwrap().lines() {
-        let rgb = hexToRGB(colour).unwrap();
+    for colour in read_to_string(file_path).unwrap().lines() {
+        let rgb = hex_to_rgb(colour).unwrap();
         palette.push(rgb)
     }
     return palette;
 }
 
 
-fn generateRawPalette(img: &DynamicImage) -> HashSet<Rgb<u8>> {
+fn generate_raw_palette(img: &DynamicImage) -> HashSet<Rgb<u8>> {
     let rgb_img = img.to_rgb8();
     let mut colours = HashSet::new();
 
@@ -89,3 +90,4 @@ fn generateRawPalette(img: &DynamicImage) -> HashSet<Rgb<u8>> {
 
     return colours;
 }
+
