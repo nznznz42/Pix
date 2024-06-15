@@ -1,14 +1,13 @@
-use std::collections::HashSet;
 use std::fs::{File, read_dir, read_to_string};
 use std::io::Read;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-use image::{DynamicImage, GenericImageView, Rgb};
+use image::Rgb;
 
 use crate::colour::{select_average, select_kmeans, select_median, select_randomly, SelectionStrategy};
 use crate::image::Image;
-use crate::utils::{hex_to_rgb, rgb_to_hex};
+use crate::utils::{generate_raw_palette, hex_to_rgb, rgb_to_hex};
 
 #[derive(Clone)]
 pub struct Palette {
@@ -80,14 +79,5 @@ fn load_palette(path: &str) -> Vec<Rgb<u8>> {
 }
 
 
-fn generate_raw_palette(img: &DynamicImage) -> HashSet<Rgb<u8>> {
-    let rgb_img = img.to_rgb8();
-    let mut colours = HashSet::new();
 
-    for pixel in rgb_img.pixels() {
-        colours.insert(*pixel);
-    }
-
-    return colours;
-}
 

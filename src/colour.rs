@@ -1,7 +1,8 @@
+use std::collections::HashSet;
+
 use image::Rgb;
 use rand::prelude::IteratorRandom;
 
-use crate::palette::Palette;
 use crate::utils::sum_fold_and_count;
 
 pub fn euclidean_distance(color1: &Rgb<u8>, color2: &Rgb<u8>) -> f32 {
@@ -13,16 +14,16 @@ pub fn euclidean_distance(color1: &Rgb<u8>, color2: &Rgb<u8>) -> f32 {
     return dist;
 }
 
-pub fn calculate_avg_distance_in_palette(pal: &Palette) -> f32 {
+pub fn calculate_avg_distance_in_palette(pal: &HashSet<Rgb<u8>>) -> f32 {
     let mut total_distance = 0.0;
-    let color_count = pal.colours.len();
+    let color_count = pal.len();
 
     if color_count == 0 {
         return 0.0;
     }
 
-    for (i, color1) in pal.colours.iter().enumerate() {
-        for color2 in pal.colours.iter().skip(i + 1) {
+    for (i, color1) in pal.iter().enumerate() {
+        for color2 in pal.iter().skip(i + 1) {
             total_distance += euclidean_distance(color1, color2);
         }
     }
