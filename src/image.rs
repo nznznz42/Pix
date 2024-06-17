@@ -6,8 +6,8 @@ use std::thread;
 use image::{DynamicImage, ExtendedColorType, GenericImage, GenericImageView, ImageFormat, save_buffer_with_format};
 use image::imageops::FilterType;
 
-use crate::colour::{euclidean_distance};
-use crate::ditherer::{Ditherer, DitherMode, floyd_steinberg_dither};
+use crate::colour::euclidean_distance;
+use crate::ditherer::{Ditherer, DitherMode};
 use crate::palette::Palette;
 use crate::utils::available_threads;
 

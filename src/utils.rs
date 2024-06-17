@@ -1,8 +1,7 @@
 use std::collections::HashSet;
-use std::sync::{Arc, Mutex};
 use std::thread;
 
-use image::{DynamicImage, Rgb, Rgba, RgbaImage};
+use image::{DynamicImage, GenericImage, GenericImageView, ImageBuffer, Rgb};
 use rand::Rng;
 
 use crate::ditherer::BlueNoiseThreshold;
@@ -52,7 +51,7 @@ pub fn sum_fold_and_count(cluster: &Vec<Rgb<u8>>) -> (u32, u32, u32, u32) {
     })
 }
 
-pub fn find_closest_color(color: &Rgb<u8>, palette: &HashSet<Rgb<u8>>) -> Rgb<u8> {
+pub fn find_closest_color(color: &Rgb<u8>, palette: &Vec<Rgb<u8>>) -> Rgb<u8> {
     let (r, g, b) = (color[0], color[1], color[2]);
     let mut min_distance = f32::MAX;
     let pal: Vec<Rgb<u8>> = palette.iter().cloned().collect();
@@ -80,29 +79,29 @@ pub fn calculate_error(old_color: &Rgb<u8>, new_color: &Rgb<u8>) -> Rgb<i16> {
     ])
 }
 
-pub fn distribute_error(image: &mut RgbaImage, x: u32, y: u32, error: &Rgba<i16>, coefficients: &[(i32, i32, f32)]) {
-    let mut rgba_image = image.clone();
-    let (width, height) = rgba_image.dimensions();
+pub fn diffuse_error(x: u32, y: u32, diff_mat: &[((i32, i32), f32)], error: Rgb<i16>, image: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
+    let (width, height) = image.dimensions();
 
-    for &(dx, dy, factor) in coefficients {
+    for &((dx, dy), coeff) in diff_mat {
         let nx = x as i32 + dx;
         let ny = y as i32 + dy;
 
         if nx >= 0 && nx < width as i32 && ny >= 0 && ny < height as i32 {
-            let nx = nx as u32;
-            let ny = ny as u32;
-            let mut pixel = rgba_image.get_pixel(nx, ny).clone();
+            let pixel = image.get_pixel(nx as u32, ny as u32);
+            let mut new_pixel = image.get_pixel(nx as u32, ny as u32).clone();
 
             for i in 0..3 {
-                let value = pixel[i] as i16 + (error[i] as f32 * factor) as i16;
-                pixel[i] = clamp(value, 0, 255) as u8;
+                new_pixel[i] = pixel[i] + (error[i] as f32 * coeff) as u8;
+                new_pixel[i] = clamp(new_pixel[i] as i16, 0, 255) as u8;
             }
 
-            rgba_image.put_pixel(nx, ny, pixel);
+            image.put_pixel(nx as u32, ny as u32, Rgb([
+                new_pixel[0],
+                new_pixel[1],
+                new_pixel[2],
+            ]));
         }
     }
-
-    *image = rgba_image;
 }
 
 pub fn clamp(value: i16, min: i16, max: i16) -> i16 {
