@@ -44,30 +44,98 @@ impl Ditherer {
         let mode = dither_mode.clone();
         let dither_fn = Self::get_dither_fn(mode);
         return Ditherer {
-            dither_mode: dither_mode,
+            dither_mode,
             dither_fn,
         };
     }
 
     fn get_dither_fn(mode: DitherMode) -> Box<dyn Fn(&mut DynamicImage) + 'static> {
         match mode {
-            DitherMode::BAYER(order) => Box::new(move |image: &mut DynamicImage| { bayer_dithering(image, order) }),
-            DitherMode::BLUENOISE(threshold, palette) => Box::new(move |image: &mut DynamicImage| { blue_noise_dither(image, threshold, palette) }),
-            DitherMode::FLOYDSTEINBERG(palette) => Box::new(move |image: &mut DynamicImage| { generic_error_diffusion_dither(image, palette, &DIFF_MAT_FLOYD_STEINBERG) }),
-            DitherMode::ATKINSON(palette) => Box::new(move |image: &mut DynamicImage| { generic_error_diffusion_dither(image, palette, &DIFF_MAT_ATKINSON) }),
-            DitherMode::JARVISJUDICENINKE(palette) => Box::new(move |image: &mut DynamicImage| { generic_error_diffusion_dither(image, palette, &DIFF_MAT_JARVIS_JUDICE_NINKE) }),
-            DitherMode::SIERRA(palette) => Box::new(move |image: &mut DynamicImage| { generic_error_diffusion_dither(image, palette, &DIFF_MAT_SIERRA) }),
-            DitherMode::STUCKI(palette) => Box::new(move |image: &mut DynamicImage| { generic_error_diffusion_dither(image, palette, &DIFF_MAT_STUCKI) }),
-            DitherMode::BURKES(palette) => Box::new(move |image: &mut DynamicImage| { generic_error_diffusion_dither(image, palette, &DIFF_MAT_BURKES) }),
-            DitherMode::STEVENSONARCE(palette) => Box::new(move |image: &mut DynamicImage| { generic_error_diffusion_dither(image, palette, &DIFF_MAT_STEVENSON_ARCE) }),
-            DitherMode::SIERRA2(palette) => Box::new(move |image: &mut DynamicImage| { generic_error_diffusion_dither(image, palette, &DIFF_MAT_TWO_ROW_SIERRA) }),
-            DitherMode::SIERRALITE(palette) => Box::new(move |image: &mut DynamicImage| { generic_error_diffusion_dither(image, palette, &DIFF_MAT_SIERRA_LITE) }),
-            DitherMode::FAN(palette) => Box::new(move |image: &mut DynamicImage| { generic_error_diffusion_dither(image, palette, &DIFF_MAT_FAN) }),
-            DitherMode::K3M(palette) => Box::new(move |image: &mut DynamicImage| { generic_error_diffusion_dither(image, palette, &DIFF_MAT_K3M) }),
-            DitherMode::LIWAN(palette) => Box::new(move |image: &mut DynamicImage| { generic_error_diffusion_dither(image, palette, &DIFF_MAT_LI_WAN) }),
-            DitherMode::PJARRI(palette) => Box::new(move |image: &mut DynamicImage| { generic_error_diffusion_dither(image, palette, &DIFF_MAT_PJARRI) }),
-            DitherMode::SHIAUFAN(palette) => Box::new(move |image: &mut DynamicImage| { generic_error_diffusion_dither(image, palette, &DIFF_MAT_SHIAU_FAN) }),
-            DitherMode::IMPROVEDSTUCKI(palette) => Box::new(move |image: &mut DynamicImage| { generic_error_diffusion_dither(image, palette, &DIFF_MAT_IMPROVED_STUCKI) }),
+            DitherMode::BAYER(order) => {
+                Box::new(move |image: &mut DynamicImage| {
+                    bayer_dithering(image, order)
+                })
+            },
+            DitherMode::BLUENOISE(threshold, palette) => {
+                Box::new(move |image: &mut DynamicImage| {
+                    blue_noise_dither(image, threshold, palette)
+                })
+            },
+            DitherMode::FLOYDSTEINBERG(palette) => {
+                Box::new(move |image: &mut DynamicImage| {
+                    generic_error_diffusion_dither(image, palette, &DIFF_MAT_FLOYD_STEINBERG)
+                })
+            },
+            DitherMode::ATKINSON(palette) => {
+                Box::new(move |image: &mut DynamicImage| {
+                    generic_error_diffusion_dither(image, palette, &DIFF_MAT_ATKINSON)
+                })
+            },
+            DitherMode::JARVISJUDICENINKE(palette) => {
+                Box::new(move |image: &mut DynamicImage| {
+                    generic_error_diffusion_dither(image, palette, &DIFF_MAT_JARVIS_JUDICE_NINKE)
+                })
+            },
+            DitherMode::SIERRA(palette) => {
+                Box::new(move |image: &mut DynamicImage| {
+                    generic_error_diffusion_dither(image, palette, &DIFF_MAT_SIERRA)
+                })
+            },
+            DitherMode::STUCKI(palette) => {
+                Box::new(move |image: &mut DynamicImage| {
+                    generic_error_diffusion_dither(image, palette, &DIFF_MAT_STUCKI)
+                })
+            },
+            DitherMode::BURKES(palette) => {
+                Box::new(move |image: &mut DynamicImage| {
+                    generic_error_diffusion_dither(image, palette, &DIFF_MAT_BURKES)
+                })
+            },
+            DitherMode::STEVENSONARCE(palette) => {
+                Box::new(move |image: &mut DynamicImage| {
+                    generic_error_diffusion_dither(image, palette, &DIFF_MAT_STEVENSON_ARCE)
+                })
+            },
+            DitherMode::SIERRA2(palette) => {
+                Box::new(move |image: &mut DynamicImage| {
+                    generic_error_diffusion_dither(image, palette, &DIFF_MAT_TWO_ROW_SIERRA)
+                })
+            },
+            DitherMode::SIERRALITE(palette) => {
+                Box::new(move |image: &mut DynamicImage| {
+                    generic_error_diffusion_dither(image, palette, &DIFF_MAT_SIERRA_LITE)
+                })
+            },
+            DitherMode::FAN(palette) => {
+                Box::new(move |image: &mut DynamicImage| {
+                    generic_error_diffusion_dither(image, palette, &DIFF_MAT_FAN)
+                })
+            },
+            DitherMode::K3M(palette) => {
+                Box::new(move |image: &mut DynamicImage| {
+                    generic_error_diffusion_dither(image, palette, &DIFF_MAT_K3M)
+                })
+            },
+            DitherMode::LIWAN(palette) => {
+                Box::new(move |image: &mut DynamicImage| {
+                    generic_error_diffusion_dither(image, palette, &DIFF_MAT_LI_WAN)
+                })
+            },
+            DitherMode::PJARRI(palette) => {
+                Box::new(move |image: &mut DynamicImage| {
+                    generic_error_diffusion_dither(image, palette, &DIFF_MAT_PJARRI)
+                })
+            },
+            DitherMode::SHIAUFAN(palette) => {
+                Box::new(move |image: &mut DynamicImage| {
+                    generic_error_diffusion_dither(image, palette, &DIFF_MAT_SHIAU_FAN)
+                })
+            },
+            DitherMode::IMPROVEDSTUCKI(palette) => {
+                Box::new(move |image: &mut DynamicImage| {
+                    generic_error_diffusion_dither(image, palette, &DIFF_MAT_IMPROVED_STUCKI)
+                })
+            },
         }
     }
 }
@@ -95,7 +163,7 @@ fn bayer_dithering(image: &mut DynamicImage, order: u32) {
     }
 }
 
-pub fn generate_bayer_matrix(order: u32) -> Vec<Vec<f32>> {
+fn generate_bayer_matrix(order: u32) -> Vec<Vec<f32>> {
     if order == 0 {
         return vec![vec![0f32]];
     }
@@ -125,7 +193,7 @@ fn bayer_threshold(matrix: &Vec<Vec<f32>>, order: u32, x: u32, y: u32) -> f32 {
     (value / max_value) * 255.0
 }
 
-pub fn generic_error_diffusion_dither(image: &mut DynamicImage, palette: &str, diff_mat: &[((i32, i32), f32)]) {
+fn generic_error_diffusion_dither(image: &mut DynamicImage, palette: &str, diff_mat: &[((i32, i32), f32)]) {
     let (width, height) = image.dimensions();
     let pal = Palette::new(palette).colours;
     let mut pixels = image.to_rgb8();
@@ -148,7 +216,7 @@ fn blue_noise_dither(image: &mut DynamicImage, threshold: BlueNoiseThreshold, pa
     let (width, height) = image.dimensions();
     let mut pixels = image.to_rgb8();
     let mut rng = rand::thread_rng();
-    let noise_threshold = gen_blue_noise_threshold(threshold);  // Example threshold, can be adjusted
+    let noise_threshold = gen_blue_noise_threshold(threshold);
 
     for y in 0..height {
         for x in 0..width {
@@ -173,5 +241,3 @@ fn blue_noise_dither(image: &mut DynamicImage, threshold: BlueNoiseThreshold, pa
     }
     *image = DynamicImage::ImageRgb8(pixels);
 }
-
-

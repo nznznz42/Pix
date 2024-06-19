@@ -13,8 +13,8 @@ mod ditherer;
 mod consts;
 
 fn main() {
-    let inpath = "./input/angry_bird.jpg";
-    let outpath = "./output/angry_bird4.png";
+    let inpath = "./input/totem.jpg";
+    let outpath = "./output/totemtest.png";
     let palname = "2bit-demichrome.hex";
     let px_factor = 5;
     let sel_fac = SelectionStrategy::Random;
@@ -26,9 +26,10 @@ fn main() {
 fn px_std(inputfilepath: &str, outputfilepath: &str, palette: &'static str, pxfactor: u32, interpolfilter: FilterType) {
     let mut img = Image::new(inputfilepath);
     let pal = Palette::new(&palette);
-    img.pixelate(5, interpolfilter);
     let mode= DitherMode::STEVENSONARCE(palette);
+    img.pixelate(pxfactor, interpolfilter);
     img.dither(mode);
+    //img.dither(DitherMode::BAYER(5));
     img.save_image(Some(outputfilepath));
 }
 

@@ -14,3 +14,4 @@
 12. CLI []
 13. GUI [x] - Cancelled (For the time being only, would take up too much time to implement)
 14. Random Patterns [x] - Cancelled (pointless feature that should be part of an entirely different kind of project)
+15. Blend image
