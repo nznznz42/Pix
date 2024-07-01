@@ -29,17 +29,6 @@ pub fn rgb_to_hex(rgb: Rgb<u8>) -> String {
     format!("{:02X}{:02X}{:02X}", rgb[0], rgb[1], rgb[2])
 }
 
-pub fn hex_to_u32(hex: String) -> Result<u32, String> {
-    if hex.len() == 7 && &hex[0..1] == "#" {
-        match u32::from_str_radix(&hex[1..], 16) {
-            Ok(value) => Ok(value),
-            Err(_) => Err("Invalid hex number".to_string()),
-        }
-    } else {
-        Err("Invalid hex format".to_string())
-    }
-}
-
 pub fn sum_fold_and_count(cluster: &Vec<Rgb<u8>>) -> (u32, u32, u32, u32) {
     cluster.iter().fold((0u32, 0u32, 0u32, 0u32), |acc, color| {
         (

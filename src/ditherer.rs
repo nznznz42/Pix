@@ -2,7 +2,13 @@ use image::{DynamicImage, GenericImage, GenericImageView, Rgb, Rgba};
 use rand::Rng;
 
 use crate::colour::calculate_avg_distance_in_palette;
-use crate::consts::{DIFF_MAT_ATKINSON, DIFF_MAT_BURKES, DIFF_MAT_FAN, DIFF_MAT_FLOYD_STEINBERG, DIFF_MAT_IMPROVED_STUCKI, DIFF_MAT_JARVIS_JUDICE_NINKE, DIFF_MAT_K3M, DIFF_MAT_LI_WAN, DIFF_MAT_PJARRI, DIFF_MAT_SHIAU_FAN, DIFF_MAT_SIERRA, DIFF_MAT_SIERRA_LITE, DIFF_MAT_STEVENSON_ARCE, DIFF_MAT_STUCKI, DIFF_MAT_TWO_ROW_SIERRA};
+use crate::consts::{
+    DIFF_MAT_ATKINSON, DIFF_MAT_BURKES, DIFF_MAT_FAN, DIFF_MAT_FLOYD_STEINBERG,
+    DIFF_MAT_IMPROVED_STUCKI, DIFF_MAT_JARVIS_JUDICE_NINKE, DIFF_MAT_K3M,
+    DIFF_MAT_LI_WAN, DIFF_MAT_PJARRI, DIFF_MAT_SHIAU_FAN, DIFF_MAT_SIERRA,
+    DIFF_MAT_SIERRA_LITE, DIFF_MAT_STEVENSON_ARCE, DIFF_MAT_STUCKI,
+    DIFF_MAT_TWO_ROW_SIERRA
+};
 use crate::palette::Palette;
 use crate::utils::{calculate_error, diffuse_error, find_closest_color, gen_blue_noise_threshold, generate_raw_palette};
 

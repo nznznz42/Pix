@@ -3,13 +3,13 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-use image::{DynamicImage, ExtendedColorType, GenericImage, GenericImageView, ImageFormat, save_buffer_with_format};
-use image::imageops::FilterType;
+use image::{DynamicImage, ExtendedColorType, GenericImage, GenericImageView, ImageFormat, Pixel, save_buffer_with_format};
+use image::imageops::{FilterType};
 
 use crate::colour::euclidean_distance;
 use crate::ditherer::{Ditherer, DitherMode};
 use crate::palette::Palette;
-use crate::utils::available_threads;
+use crate::utils::{available_threads, hex_to_rgb, rgb_to_hex};
 
 pub enum Extension {
     PNG,
@@ -125,6 +125,49 @@ impl Image {
         let ditherer = Ditherer::new(mode);
         (ditherer.dither_fn)(&mut self.data)
     }
+
+    pub fn convert_to_grayscale_in_place(&mut self) {
+        self.data.to_luma8();
+    }
+
+    pub fn convert_to_grayscale(&self) -> DynamicImage {
+        let gray = self.data.to_luma8();
+        return DynamicImage::ImageLuma8(gray);
+    }
+
+    pub fn create_mask(&self, colours: Vec<String>, background: &str) -> DynamicImage {
+        let mut mask = self.data.clone().to_rgb8();
+        let (width, height) = mask.dimensions();
+        let back = hex_to_rgb(background).unwrap();
+
+        for y in 0..height {
+            for x in 0..width {
+                let pix = mask.get_pixel(x, y).clone();
+                if !colours.contains(&rgb_to_hex(pix)) {
+                    mask.put_pixel(x, y, back)
+                }
+            }
+        }
+
+        return DynamicImage::ImageRgb8(mask);
+    }
+
+    pub fn apply_mask(&mut self, mask: &DynamicImage, background: &str) {
+        let (width, height) = self.data.dimensions();
+        let rgb_mask = mask.to_rgb8();
+
+        for y in 0..height {
+            for x in 0..width {
+                let mPixel = rgb_mask.get_pixel(x, y).clone();
+                let hex = rgb_to_hex(mPixel);
+
+                if !(hex == background) {
+                    self.data.put_pixel(x, y, mPixel.to_rgba())
+                }
+            }
+        }
+    }
+
 }
 
 fn load_image(file_path: &str) -> DynamicImage {
@@ -132,7 +175,7 @@ fn load_image(file_path: &str) -> DynamicImage {
     return img;
 }
 
-fn save_image(img: &DynamicImage, extension: &str, file_path: &str) {
+pub fn save_image(img: &DynamicImage, extension: &str, file_path: &str) {
     let imgbuf = img.as_bytes();
     let width = img.width();
     let height = img.height();

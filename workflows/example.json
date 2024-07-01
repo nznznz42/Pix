@@ -1,0 +1,46 @@
+{
+    "image_path": "../input/eye.jpg",
+    "output": "../output/eye_test.png",
+    "base_palette": "../palette/bloodlust.hex",
+
+    "commands": [
+        {
+            "name": "pixelate",
+            "pxFactor": 5
+        },
+
+        {
+            "name": "palettize"
+        },
+
+        {
+            "name": "dither",
+            "type": "bayer",
+            "bayer_val": 4
+        },
+
+        {
+            "name": "create_mask",
+            "id": 1,
+            "allowed_colours": ["FF00FF", "8FAC00"],
+            "background": "000000"
+        },
+
+        {
+            "name": "palettize",
+            "palette": "./palette/optional_palette.hex"
+        },
+
+        {
+            "name": "dither",
+            "type": "floyd",
+            "palette": "./palette/optional_palette.hex"
+        },
+
+        {
+            "name": "apply_mask",
+            "id": 1
+        }
+
+    ]
+}
